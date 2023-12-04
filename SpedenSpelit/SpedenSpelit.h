@@ -29,8 +29,6 @@ void initializeGame(void);
   byte lastButtonPress of the player 0 or 1 or 2 or 3
   
 */
-void checkGame(byte);
-
 
 /*
   startTheGame() subroutine calls InitializeGame()
@@ -38,10 +36,6 @@ void checkGame(byte);
   the Game.
 */
 void startTheGame(void);
-
-uint16_t calculateNewDelay(uint16_t currentDelay, uint16_t currentGameScore) {
-
-}
 
 long lastRandomNumber = -1; // Initialize to a value not in the desired range
 long getRandomNumber() {
