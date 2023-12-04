@@ -9,7 +9,12 @@ enum GAME_STATE {
   END,
 };
 
-volatile unsigned long lastDebounceTime = 0;
+volatile unsigned long lastDebounceTime2 = 0;
+volatile unsigned long lastDebounceTime3 = 0;
+volatile unsigned long lastDebounceTime4 = 0;
+volatile unsigned long lastDebounceTime5 = 0;
+volatile unsigned long lastDebounceTime6 = 0;
+
 volatile unsigned long debounceDelay = 50;
 volatile unsigned long lastPressedButton = 0;
 volatile unsigned long currentLed = lastRandomNumber;
@@ -20,6 +25,7 @@ volatile GAME_STATE gameStatus = WAITING;
 int gameDelayMs = 3000;
 
 void setup() {
+  cli();
   /* This will then shuffle the random function */
   randomSeed(analogRead(0));
 
@@ -32,6 +38,8 @@ void setup() {
   }
   PCICR |= bit(PCIE2);
 
+  initializeTimer();
+
   Serial.begin(9600);
   sei();
 
@@ -40,16 +48,24 @@ void setup() {
   */
 }
 
+/* 
+
+Serial.println(OCR1A);
+OCR1A = OCR1A * 0.9;
+ */
+
 void loop() {
-switch (gameStatus) {
+  switch (gameStatus) {
     case WAITING:
       if (lastPressedButton >= 4) {
+        Serial.println(OCR1A);
+        OCR1A = OCR1A * 0.9;
         lastPressedButton = 0;
-        startTheGame();
+        //startTheGame();
         delay(1000);
         break;
       }
-      enableAllLeds();
+      //enableAllLeds();
       break;
     case STARTED:
       clearAllLeds();
@@ -60,7 +76,7 @@ switch (gameStatus) {
         delay(100);
       }
 
-      if ( lastPressedButton == currentLed ) {
+      if (lastPressedButton == currentLed) {
         Serial.println("Oikein");
         gameScore++;
       } else {
@@ -77,11 +93,7 @@ switch (gameStatus) {
   }
 }
 
-volatile unsigned long lastDebounceTime2 = 0;
-volatile unsigned long lastDebounceTime3 = 0;
-volatile unsigned long lastDebounceTime4 = 0;
-volatile unsigned long lastDebounceTime5 = 0;
-volatile unsigned long lastDebounceTime6 = 0;
+
 
 ISR(PCINT2_vect) {
   debounceButton(PIN2, lastDebounceTime2);
@@ -92,7 +104,7 @@ ISR(PCINT2_vect) {
 }
 
 void debounceButton(int pin, volatile unsigned long &lastDebounceTime) {
-   unsigned long currentTime = millis();
+  unsigned long currentTime = millis();
 
   if ((currentTime - lastDebounceTime) < debounceDelay) {
     return;
@@ -103,7 +115,7 @@ void debounceButton(int pin, volatile unsigned long &lastDebounceTime) {
     Serial.print(pin);
     Serial.println(" keskeytti");
 
-    lastPressedButton = ( pin - 2 );
+    lastPressedButton = (pin - 2);
   }
 
   lastDebounceTime = millis();
@@ -111,9 +123,28 @@ void debounceButton(int pin, volatile unsigned long &lastDebounceTime) {
 
 
 ISR(TIMER1_COMPA_vect) {
+  //if ( gameStatus != STARTED ) return;
+
+  clearAllLeds();
+  lastPressedButton = 0;
+  currentLed = getRandomNumber();
+  setLedState(currentLed, HIGH);
+
+  Serial.println("TIMER1_COMPA_vect");
 }
 
-void initializeTimer(void) {
+void initializeTimer() {
+  TCCR1A = 0;  // set entire TCCR1A register to 0
+  TCCR1B = 0;  // same for TCCR1B
+  TCNT1 = 0;   //initialize counter value to 0
+  // set compare match register for 1hz increments
+  OCR1A = 15624;  // = (16*10^6) / (1*1024) - 1 (must be <65536)
+  // turn on CTC mode
+  TCCR1B |= (1 << WGM12);
+  // Set CS10 and CS12 bits for 1024 prescaler
+  TCCR1B |= (1 << CS12) | (1 << CS10);
+  // enable timer compare interrupt
+  TIMSK1 |= (1 << OCIE1A);
   // see requirements for the function from SpedenSpelit.h
 }
 
