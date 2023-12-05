@@ -2,9 +2,9 @@
 #define DISPLAY_H
 #include <arduino.h>
 
-int LATCH = PIN2;
-int DATA = PIN3;
-int CLK = PIN4;
+const int LATCH = 10;
+const int DATA = 11;
+const int CLK = 12;
 
 byte digitOne[10] = { 64, 121, 36, 48, 25, 18, 2, 120, 0, 24 };
 byte digitTwo[10] = { 64, 121, 36, 48, 25, 18, 2, 120, 0, 24 };

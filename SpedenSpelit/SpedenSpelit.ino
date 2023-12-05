@@ -26,7 +26,7 @@ void setup() {
 
   initializeLeds();
   initializeButtons();
-  //initializeDisplay();
+  initializeDisplay();
 
   /* Button interrupts */
   for (int i = 0; i < gameButtonPins; ++i) {
@@ -35,6 +35,8 @@ void setup() {
   PCICR |= bit(PCIE2);
 
   initializeTimer();
+  displayNumber(0);
+
 
   Serial.begin(9600);
   sei();
@@ -48,6 +50,8 @@ void loop() {
         delay(1000);
         break;
       }
+
+      
       enableAllLeds();
       break;
     case END:
