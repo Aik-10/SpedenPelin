@@ -14,12 +14,12 @@ volatile unsigned long lastDebounceTime2, lastDebounceTime3, lastDebounceTime4, 
 volatile unsigned long currentLed = lastRandomNumber;
 volatile long lastPressedButton = 0;
 volatile long lastPressedButtons[MAX_SCORE] = {};
-volatile unsigned long debounceDelay = 150;
+volatile unsigned long debounceDelay = 250;
 volatile GAME_STATE gameStatus = WAITING;
 volatile int generatedNumberList[MAX_SCORE] = {};
 volatile int gameScore = 0;
-volatile int gameDelay = 15624; /* 1khz */
 volatile int arraySize = 0;
+volatile int gameDelay = 15624; /* 1khz */
 
 void setup() {
   cli();
@@ -28,15 +28,11 @@ void setup() {
   initializeButtons();
   initializeDisplay();
 
-  /* Button interrupts */
-  for (int i = 0; i < gameButtonPins; ++i) {
-    PCMSK2 |= bit(PCINT18 - i);
-  }
-  PCICR |= bit(PCIE2);
+  PCICR |= B00000100;
+  PCMSK2 |= B01111100;
 
   initializeTimer();
   displayNumber(0);
-
 
   Serial.begin(9600);
   sei();
@@ -51,7 +47,7 @@ void loop() {
         break;
       }
 
-      
+
       enableAllLeds();
       break;
     case END:
@@ -94,7 +90,6 @@ void degreaseDelay(float degreaseAmount = 0.9) {
 }
 
 ISR(TIMER1_COMPA_vect) {
-  Serial.println(gameScore);
   if (arraySize >= MAX_SCORE) {
     clearAllLeds();
     return;
@@ -102,7 +97,7 @@ ISR(TIMER1_COMPA_vect) {
 
   if (arraySize != 0 && arraySize % 10 == 0) {
     degreaseDelay();
-    if ( DEBUG ) {
+    if (DEBUG) {
       Serial.println("Speed up");
     }
   }
@@ -162,6 +157,11 @@ void debounceButton(int pin, volatile unsigned long &lastDebounceTime) {
   }
 
   if ((digitalRead(pin) == LOW)) {
+    if ((pin - 2) == lastPressedButton && lastPressedButton < 4) {
+      Serial.println("Double input");
+      return;
+    }
+
     if (DEBUG) {
       Serial.print("PIN ");
       Serial.print(pin);
