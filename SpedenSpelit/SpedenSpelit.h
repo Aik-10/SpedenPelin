@@ -5,7 +5,6 @@
 /*
   initializeTimer() subroutine intializes Arduino Timer1 module to
   give interrupts at rate 1Hz
-  
 */
 void initializeTimer(void);
 
