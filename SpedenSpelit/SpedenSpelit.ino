@@ -45,7 +45,7 @@ void loop() {
         delay(1000);
         break;
       }
-      
+
       enableAllLeds();
       break;
     case END:
@@ -83,17 +83,25 @@ ISR(PCINT2_vect) {
 
 
 ISR(TIMER1_COMPA_vect) {
-  /*
-    Here you generate a random number that is used to
-	set certain led.
-	
-	Each timer interrupt increments "played" numbers,
-	and after each 10 numbers you must increment interrupt
-	frequency.
-	
-	Each generated random number must be stored for later
-	comparision against player push button presses.
-  */
+  if (arraySize >= MAX_SCORE) {
+    clearAllLeds();
+    return;
+  }
+
+  if (arraySize != 0 && arraySize % 10 == 0) {
+    degreaseDelay();
+    if (DEBUG) {
+      Serial.println("Speed up");
+    }
+  }
+
+  clearAllLeds();
+  currentLed = getRandomNumber();
+  generatedNumberList[arraySize] = (int)currentLed;
+
+  arraySize++;
+
+  setLedState(currentLed, HIGH);
 }
 
 void degreaseDelay(float degreaseAmount = 0.9) {
@@ -111,7 +119,31 @@ void initializeTimer(void) {
 }
 
 void checkGame(byte nbrOfButtonPush) {
-  // see requirements for the function from SpedenSpelit.h
+  if (gameScore > arraySize) {
+    gameStatus = END;
+    lastPressedButton = -1;
+    return;
+  }
+
+  clearAllLeds();
+
+  if (lastPressedButtons[gameScore] == generatedNumberList[gameScore]) {
+    if (DEBUG) {
+      Serial.println("Right next number");
+      Serial.println(generatedNumberList[gameScore]);
+      Serial.println(lastPressedButtons[gameScore]);
+    }
+
+    gameScore++;
+    displayNumber(gameScore);
+  } else {
+    gameStatus = END;
+
+    if (!DEBUG) return;
+    Serial.println("Wrong button press");
+    Serial.println(generatedNumberList[gameScore]);
+    Serial.println(lastPressedButtons[gameScore]);
+  }
 }
 
 
