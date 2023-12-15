@@ -28,7 +28,7 @@ void initializeGame(void);
   byte lastButtonPress of the player 0 or 1 or 2 or 3
   
 */
-void checkGame(byte);
+void checkGame();
 
 
 /*
@@ -38,5 +38,10 @@ void checkGame(byte);
 */
 void startTheGame(void);
 
+void handleWinStatus(void);
+void handleEndStatus(void);
+void handleWaitingStatus(void);
+void debounceButton(int pin);
+void degreaseDelay(float degreaseAmount = 0.9);
 
 #endif

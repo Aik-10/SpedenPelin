@@ -4,8 +4,8 @@
 #include "leds.h"
 #include "SpedenSpelit.h"
 
-const bool DEBUG = true;
-const int debounceDelay = 250;
+const bool DEBUG = false;
+const int debounceDelay = 50;
 const int gameDelay = 15624; /* (1khz) = (16*10^6) / (1*1024) - 1 (must be <65536) */
 const int MAX_SCORE = 100;
 
@@ -13,12 +13,11 @@ volatile unsigned long lastDebounceTime = 0;
 volatile unsigned long currentLed = lastRandomNumber;
 
 volatile GAME_STATE gameStatus = WAITING;
-volatile long lastPressedButton = 0;
+volatile long lastPressedButton = -1;
 volatile int gameScore, arraySize = 0;
 
 volatile long lastPressedButtons[MAX_SCORE] = {};
 volatile int generatedNumberList[MAX_SCORE] = {};
-
 
 void setup() {
   cli();
@@ -26,9 +25,6 @@ void setup() {
   initializeLeds();
   initializeButtons();
   initializeDisplay();
-
-  PCICR |= B00000100;
-  PCMSK2 |= B01111100;
 
   initializeTimer();
   displayNumber(0);
@@ -40,37 +36,13 @@ void setup() {
 void loop() {
   switch (gameStatus) {
     case WAITING:
-      if (lastPressedButton >= 4) {
-        startTheGame();
-        delay(1000);
-        break;
-      }
-
-      enableAllLeds();
+      handleWaitingStatus();
       break;
     case END:
-      TIMSK1 &= ~(1 << OCIE1A);
-      delay(100);
-
-      if (lastPressedButton >= 4) {
-        gameStatus = WAITING;
-        delay(1000);
-        break;
-      }
-
-      clearAllLeds();
-      delay(500);
-      enableAllLeds();
+      handleEndStatus();
       break;
     case WIN:
-      TIMSK1 &= ~(1 << OCIE1A);
-      delay(100);
-
-      if (lastPressedButton != 0) {
-        gameStatus = WAITING;
-      }
-
-      enableAllLeds();
+      handleWinStatus();
       break;
   }
 }
@@ -81,9 +53,8 @@ ISR(PCINT2_vect) {
   }
 }
 
-
 ISR(TIMER1_COMPA_vect) {
-  if (arraySize >= MAX_SCORE) {
+  if (arraySize >= MAX_SCORE - 1) {
     clearAllLeds();
     return;
   }
@@ -118,14 +89,16 @@ void initializeTimer(void) {
   TIMSK1 &= ~(1 << OCIE1A);
 }
 
-void checkGame(byte nbrOfButtonPush) {
+void checkGame() {
   if (gameScore > arraySize) {
     gameStatus = END;
     lastPressedButton = -1;
     return;
   }
 
-  clearAllLeds();
+  if (gameScore == arraySize) {
+    clearAllLeds();
+  }
 
   if (lastPressedButtons[gameScore] == generatedNumberList[gameScore]) {
     if (DEBUG) {
@@ -179,7 +152,9 @@ void debounceButton(int pin) {
   }
 
   if ((digitalRead(pin) == LOW)) {
-    if ((pin - 2) == lastPressedButton && lastPressedButton < 4) {
+    int buttonNumber = pin - 2;
+
+    if ((buttonNumber == lastPressedButton) && (lastPressedButton < 4)) {
       if (DEBUG) {
         Serial.println("Double input BLOCK");
       }
@@ -192,11 +167,12 @@ void debounceButton(int pin) {
       Serial.println(" debounceButton");
     }
 
-    lastPressedButton = (pin - 2);
+    lastPressedButton = buttonNumber;
 
     if (gameStatus == STARTED && lastPressedButton < 4) {
+      /* Checks is that score button already pressed. */
       if (lastPressedButtons[gameScore] == 0) {
-        lastPressedButtons[gameScore] = (int)lastPressedButton;
+        lastPressedButtons[gameScore] = lastPressedButton;
       }
 
       checkGame();
@@ -204,4 +180,38 @@ void debounceButton(int pin) {
   }
 
   lastDebounceTime = millis();
+}
+
+void handleWaitingStatus() {
+  if (lastPressedButton >= 4) {
+    startTheGame();
+    delay(1000);
+  } else {
+    enableAllLeds();
+  }
+}
+
+void handleEndStatus() {
+  TIMSK1 &= ~(1 << OCIE1A);
+  delay(100);
+
+  if (lastPressedButton >= 4) {
+    gameStatus = WAITING;
+    delay(1000);
+  } else {
+    clearAllLeds();
+    delay(500);
+    enableAllLeds();
+  }
+}
+
+void handleWinStatus() {
+  TIMSK1 &= ~(1 << OCIE1A);
+  delay(100);
+
+  if (lastPressedButton != 0) {
+    gameStatus = WAITING;
+  } else {
+    enableAllLeds();
+  }
 }
