@@ -6,7 +6,7 @@ Every ten rounds, the speed of the LED lighting increases by *10%*.
 
 ## Technical details
 - Board: Arduino UNO
-- Tinkercad [click here](www.tinkercad.com)
+- Tinkercad ([www.tinkercad.com](https://www.tinkercad.com/dashboard))
 
 ## Images
 
