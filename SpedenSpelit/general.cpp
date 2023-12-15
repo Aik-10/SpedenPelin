@@ -1,10 +1,5 @@
 #include "general.h"
 
-enum GAME_STATE { WAITING,
-                  STARTED,
-                  END,
-                  WIN };
-
 long lastRandomNumber = -1;  // Initialize to a value not in the desired range
 
 long getRandomNumber() {

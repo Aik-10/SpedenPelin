@@ -2,6 +2,6 @@
 #define BUTTONS_H
 #include <arduino.h>
 
-void initializeButtons();
+void initializeButtons(int buttonPins[]) ;
 
 #endif

@@ -9,8 +9,15 @@ const int debounceDelay = 50;
 const int gameDelay = 15624; /* (1khz) = (16*10^6) / (1*1024) - 1 (must be <65536) */
 const int MAX_SCORE = 100;
 
+const int buttonPins[] = { PIN2, PIN3, PIN4, PIN5, PIN6 };
+
+enum GAME_STATE { WAITING,
+                  STARTED,
+                  END,
+                  WIN };
+
 volatile unsigned long lastDebounceTime = 0;
-volatile unsigned long currentLed = lastRandomNumber;
+volatile unsigned long currentLed = -1;
 
 volatile GAME_STATE gameStatus = WAITING;
 volatile long lastPressedButton = -1;
@@ -23,7 +30,7 @@ void setup() {
   cli();
 
   initializeLeds();
-  initializeButtons();
+  initializeButtons(buttonPins);
   initializeDisplay();
 
   initializeTimer();
@@ -72,7 +79,7 @@ ISR(TIMER1_COMPA_vect) {
 
   arraySize++;
 
-  setLedState(currentLed, HIGH);
+  setLed(currentLed, HIGH);
 }
 
 void degreaseDelay(float degreaseAmount = 0.9) {
@@ -187,7 +194,7 @@ void handleWaitingStatus() {
     startTheGame();
     delay(1000);
   } else {
-    enableAllLeds();
+    setAllLeds();
   }
 }
 
@@ -201,7 +208,7 @@ void handleEndStatus() {
   } else {
     clearAllLeds();
     delay(500);
-    enableAllLeds();
+    setAllLeds();
   }
 }
 
@@ -212,6 +219,6 @@ void handleWinStatus() {
   if (lastPressedButton != 0) {
     gameStatus = WAITING;
   } else {
-    enableAllLeds();
+    setAllLeds();
   }
 }

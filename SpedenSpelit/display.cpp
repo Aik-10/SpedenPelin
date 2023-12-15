@@ -13,6 +13,29 @@ void initializeDisplay(void) {
   pinMode(DATA, OUTPUT);
 }
 
+void handleDigitalWrite(byte digits[10], int digit) {
+  for (int index = 7; index >= 0; index--) {
+    digitalWrite(DATA, (digits[digit] >> index) & 1);
+    digitalWrite(CLK, HIGH);
+    digitalWrite(CLK, LOW);
+  }
+}
+
+void displayNumber(int number) {
+  int digit1 = number / 10;
+  int digit2 = number % 10;
+
+  digitalWrite(LATCH, LOW);
+
+  handleDigitalWrite(digitOne, digit1);
+  handleDigitalWrite(digitTwo, digit2);
+
+  digitalWrite(LATCH, HIGH);
+}
+
+/*
+This is right way to display numbers, but teacher want to use `digitalWrite`
+
 void displayNumber(int number) {
   int digit1 = number % 10;
   int digit2 = number / 10;
@@ -22,3 +45,5 @@ void displayNumber(int number) {
   shiftOut(DATA, CLK, MSBFIRST, ~digitOne[digit2]);
   digitalWrite(LATCH, HIGH);
 }
+
+*/
