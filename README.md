@@ -14,7 +14,7 @@ Every ten rounds, the speed of the LED lighting increases by *10%*.
 &nbsp;
 <img src="https://i.imgur.com/gC1VRNf.png" align="left" />
 &nbsp;
-<img src="https://i.imgur.com/FWV47AP.png" align="left" />
+<img src="https://i.imgur.com/N94PWCi.png" align="left" />
 
 ## Getting Started
 
